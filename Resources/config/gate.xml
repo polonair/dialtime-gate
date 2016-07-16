@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="dialtime.gate.cron" class="Polonairs\Dialtime\GateBundle\Cron\Cronner">
+            <argument type="service" id="doctrine" />
+            <argument>%dialtime.gate.path_to_asterisk%</argument>
+            <argument>%dialtime.gate.asterisk_sip_conf%</argument>
+            <argument>%dialtime.gate.modules_conf%</argument>
+            <argument>%dialtime.gate.extensions_conf%</argument>
+            <argument>%dialtime.gate.agi_app_name%</argument>
+        </service>
+        <service id="dialtime.gate.call_router" class="Polonairs\Dialtime\GateBundle\Agi\Router">
+            <argument type="service" id="doctrine" />
+        </service>
+        <service id="dialtime.gate.agi" class="Polonairs\Dialtime\GateBundle\Agi\Agi">
+        </service>
+    </services>
+</container>
