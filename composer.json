@@ -3,9 +3,9 @@
     "homepage":    "http://dialtime.target-call.ru",
     "description": "Dialtime Gate Bundle",
     "type":        "symfony-bundle",
-    "version":     "0.1.0",
+    "version":     "0.1.1",
     "license":     "SEULA",
     "authors":     [ { "name": "Alexander Mosyagin", "email": "fixnim@gmail.com", "role": "Developer" } ],
     "autoload":    { "psr-4": { "Polonairs\\Dialtime\\GateBundle\\": "" } },
-    "require":     { "dialtime/dialtime": "0.1.0" }
+    "require":     { "dialtime/dialtime": "0.1.1" }
 }
