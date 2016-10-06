@@ -23,7 +23,7 @@ class Agi
         $this->out = defined('STDOUT') ? STDOUT : fopen('php://stdout', 'w');
 
         $str = fgets($this->in);
-        while ($str != "\r\n")
+        while ($str != "\n")
         {
         	$s = strpos($str, ':');
         	$key = substr($str, 0, $s);
