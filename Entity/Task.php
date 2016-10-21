@@ -31,6 +31,9 @@ class Task
      */
     private $state;
 
+    /** @ORM\Column(type="decimal", precision=11, scale=2) */
+    private $rate;
+
     /**
      * @ORM\Column(type="string")
      */
