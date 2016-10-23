@@ -19,6 +19,7 @@ class Agi
 	public function __construct() { }
 	public function init()
 	{
+        ob_implicit_flush(true);
         $this->in = defined('STDIN') ? STDIN : fopen('php://stdin', 'r');
         $this->out = defined('STDOUT') ? STDOUT : fopen('php://stdout', 'w');
 
@@ -128,16 +129,21 @@ class Agi
 	{
 		return $this->exec("NoOp", $data);
 	}
+    public function hangup($channel = '')
+    {
+        return $this->evaluate("HANGUP $channel");
+    }
 	public function dial(Call $call)
 	{
         switch($call->getRoute()->getState())
         {
             case Route::STATE_ACTIVE:
-                $filename = "/records/call_" . $call->getHash() . ".wav";
+                $filename = "/var/lib/dialtime/gate/records/call_" . $call->getHash() . ".wav";
                 if ($call->getDirection() === Call::DIRECTION_MT)
                 {
                     $this->exec('MixMonitor', $filename, "b");
                     $this->exec_dial("SIP/" . $call->getRoute()->getTerminator(), $call->getRoute()->getMaster());
+                    $this->hangup();
                     $call->setResult($this->get_variable("DIALSTATUS", true));
                     $call->setDialLength($this->get_variable("DIALEDTIME", true));
                     $call->setAnswerLength($this->get_variable("ANSWEREDTIME", true));
@@ -147,6 +153,7 @@ class Agi
                 {
                     $this->exec('MixMonitor', $filename, "b");
                     $this->exec_dial("SIP/" . $call->getRoute()->getOriginator(), $call->getRoute()->getCustomer());
+                    $this->hangup();
                     $call->setResult($this->get_variable("DIALSTATUS", true));
                     $call->setDialLength($this->get_variable("DIALEDTIME", true));
                     $call->setAnswerLength($this->get_variable("ANSWEREDTIME", true));
@@ -161,9 +168,9 @@ class Agi
                 }
                 break;
             case Route::STATE_RG:
-                $filename = "/records/call_" . $call->getHash() . ".wav";
                 $this->exec('MixMonitor', $filename, "b");
-                $this->exec_dial("SIP/" . $call->getRoute()->getTerminator(), $call->getRoute()->getMaster());
+                $this->exec_dial("SIP/".$call->getRoute()->getTerminator(), $call->getRoute()->getMaster());
+                $this->hangup();
                 $call->setResult($this->get_variable("DIALSTATUS", true));
                 $call->setDialLength($this->get_variable("DIALEDTIME", true));
                 $call->setAnswerLength($this->get_variable("ANSWEREDTIME", true));
