@@ -59,6 +59,7 @@ class Call
      * @ORM\Column(type="datetime")
      */
     private $created_at;
+    private $hash;
 
     public function __construct()
     {
@@ -71,7 +72,8 @@ class Call
     }
     public function getHash()
     {
-        return md5(json_encode($this->created_at).microtime()."call");
+        return $this->hash;
+        //return md5(json_encode($this->created_at).microtime()."call");
     }
     public function getResult()
     {
