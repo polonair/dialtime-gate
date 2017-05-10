@@ -168,6 +168,7 @@ class Agi
                 }
                 break;
             case Route::STATE_RG:
+                $filename = "/var/lib/dialtime/gate/records/call_" . $call->getHash() . ".wav";
                 $this->exec('MixMonitor', $filename, "b");
                 $this->exec_dial("SIP/".$call->getRoute()->getTerminator(), $call->getRoute()->getMaster());
                 $this->hangup();
