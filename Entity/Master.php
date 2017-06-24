@@ -5,13 +5,12 @@ namespace Polonairs\Dialtime\GateBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity()
- * @ORM\Table(name="forbids" indexes={
- *      @Index(name="customer_idx", columns={"customer"}),
- *      @Index(name="master_idx", columns={"master"})
+ * @ORM\Entity(repositoryClass="Polonairs\Dialtime\GateBundle\Repository\MasterRepository")
+ * @ORM\Table(name="masters" indexes={
+ *      @Index(name="number_idx", columns={"number"})
  * })
  */
-class Forbid
+class Master
 {
     /**
      * @ORM\Column(type="integer")
@@ -20,7 +19,5 @@ class Forbid
      */
     private $id;
     /** @ORM\Column(type="string") */
-    private $customer;
-    /** @ORM\Column(type="string") */
-    private $master;
+    private $number;
 }

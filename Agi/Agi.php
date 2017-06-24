@@ -15,8 +15,9 @@ class Agi
 	private $out = null;
 	private $request = [];
 	private $origination = null;
+    private $le = "\n";
 
-	public function __construct() { }
+	public function __construct($le) { $this->le = $le; }
 	public function init()
 	{
         ob_implicit_flush(true);
@@ -24,7 +25,9 @@ class Agi
         $this->out = defined('STDOUT') ? STDOUT : fopen('php://stdout', 'w');
 
         $str = fgets($this->in);
-        while ($str != "\n")
+        //while ($str != "\n")
+        //while ($str != "\r\n")
+        while ($str != $this->le)
         {
         	$s = strpos($str, ':');
         	$key = substr($str, 0, $s);
@@ -133,7 +136,7 @@ class Agi
     {
         return $this->evaluate("HANGUP $channel");
     }
-	public function dial(Call $call)
+	public function dial_old(Call $call)
 	{
         switch($call->getRoute()->getState())
         {
@@ -196,4 +199,43 @@ class Agi
 		//echo
         //dump($call);
 	}
+    public function dial(Call $call)
+    {
+        $filename = "/var/lib/dialtime/gate/records/call_" . $call->getHash() . ".wav";
+        $route = $call->getRoute();
+        if ((($route->getState() === Route::STATE_INACTIVE) && ($call->getDirection() === Call::DIRECTION_DR)) ||
+            (($route->getState() === Route::STATE_ACTIVE) && ($call->getDirection() === Call::DIRECTION_MT)) ||
+            (($route->getState() === Route::STATE_ACTIVE) && ($call->getDirection() === Call::DIRECTION_RG)))
+        {
+            $this->exec('MixMonitor', $filename, "b");
+            $this->exec_dial("SIP/" . $call->getRoute()->getTerminator(), $call->getRoute()->getMaster());
+            $this->hangup();
+            $call->setResult($this->get_variable("DIALSTATUS", true));
+            $call->setDialLength($this->get_variable("DIALEDTIME", true));
+            $call->setAnswerLength($this->get_variable("ANSWEREDTIME", true));
+            // lame business here
+            $fstr = fopen($filename, 'rb');
+            $call->setRecord(stream_get_contents($fstr));
+            // remove files
+            return;
+        }
+        elseif (($route->getState() === Route::STATE_ACTIVE) && ($call->getDirection() === Call::DIRECTION_MO))
+        {
+            $this->exec('MixMonitor', $filename, "b");
+            $this->exec_dial("SIP/" . $call->getRoute()->getOriginator(), $call->getRoute()->getCustomer());
+            $this->hangup();
+            $call->setResult($this->get_variable("DIALSTATUS", true));
+            $call->setDialLength($this->get_variable("DIALEDTIME", true));
+            $call->setAnswerLength($this->get_variable("ANSWEREDTIME", true));
+            // lame business here
+            $fstr = fopen($filename, 'rb');
+            $call->setRecord(stream_get_contents($fstr));
+            // remove files
+            return;
+        }
+        $call->setResult(Call::RESULT_CANCEL);
+        $call->setDialLength(0);
+        $call->setAnswerLength(0);
+        $call->setRecord(null);
+    }
 }

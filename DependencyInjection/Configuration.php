@@ -11,7 +11,7 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('dialtime/gate');
-       
+
         $rootNode
             ->children()
                 ->scalarNode('path_to_asterisk')
@@ -36,6 +36,11 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->scalarNode('agi_app_name')
                     ->defaultValue('dialtime-agi')
+                ->end()
+            ->end()
+            ->children()
+                ->scalarNode('le')
+                    ->defaultValue("\n")
                 ->end()
             ->end();
 

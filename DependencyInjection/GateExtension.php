@@ -9,10 +9,7 @@ use Symfony\Component\DependencyInjection\Loader;
 
 class GateExtension extends Extension
 {
-    public function getAlias()
-    {
-        return "dialtime/gate";
-    }
+    public function getAlias() { return "dialtime/gate"; }
     public function load(array $configs, ContainerBuilder $container)
     {
         $configuration = new Configuration();
@@ -22,6 +19,7 @@ class GateExtension extends Extension
         $container->setParameter("dialtime.gate.modules_conf", $config["modules_conf"]);
         $container->setParameter("dialtime.gate.extensions_conf", $config["extensions_conf"]);
         $container->setParameter("dialtime.gate.agi_app_name", $config["agi_app_name"]);
+        $container->setParameter("dialtime.gate.le", $config["le"]);
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('gate.xml');
