@@ -17,6 +17,7 @@
             <argument type="service" id="doctrine" />
         </service>
         <service id="dialtime.gate.agi" class="Polonairs\Dialtime\GateBundle\Agi\Agi">
+            <argument>%dialtime.gate.le%</argument>
         </service>
     </services>
 </container>

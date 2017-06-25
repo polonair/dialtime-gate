@@ -23,7 +23,7 @@ class AgiCommand extends ContainerAwareCommand
         $em = $this->getContainer()->get('doctrine')->getManager();
         $router = $this->getContainer()->get('dialtime.gate.call_router');
         $agi = $this->getContainer()->get('dialtime.gate.agi')->init();
-		$agi->noop("start");
+        $agi->noop("start");
 
         while(true)
         {

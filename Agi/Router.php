@@ -4,118 +4,110 @@ namespace Polonairs\Dialtime\GateBundle\Agi;
 
 use Polonairs\Dialtime\GateBundle\Entity\Call;
 use Polonairs\Dialtime\GateBundle\Entity\Route;
+use Polonairs\Dialtime\GateBundle\Entity\Master;
 use Polonairs\Dialtime\GateBundle\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Registry as Doctrine;
 
 class Router
 {
-	private $doctrine = null;
+    private $doctrine = null;
 
-	public function __construct(Doctrine $doctrine)
-	{
-		$this->doctrine = $doctrine;
-	}
-	public function process(Agi $agi)
-	{
-		$origination = $agi->getOrigination();
-		$em = $this->doctrine->getManager();
-		
-//		dump($agi);
+    public function __construct(Doctrine $doctrine)
+    {
+        $this->doctrine = $doctrine;
+    }
+    public function process(Agi $agi)
+    {
+        $origination = $agi->getOrigination();
+        $em = $this->doctrine->getManager();
 
-		$phone = $em->getRepository("GateBundle:Phone")->loadByNumber($origination->getCaller());
-		$route = $em->getRepository("GateBundle:Route")->loadByOrigination($origination);
-		
-//		dump($phone);
-//		dump($route);
+        $master = $em->getRepository("GateBundle:Master")->loadByNumber($origination->getCaller());
 
-		if ($phone !== null)
-		{
-			if ($route->getDirection($origination) === Call::DIRECTION_MO)
-			{
-				//echo "we found a route\r\n";
-				return (new Call())
-					->setRoute($route)
-					->setDirection($route->getDirection($origination));
-			}
-		}
-		$spammer = $em->getRepository("GateBundle:Forbid")->loadSpammerByNumber($origination->getCaller()); 
-		if ($spammer === null)
-		{
-			$forbids = $em->getRepository("GateBundle:Forbid")->loadByNumber($origination->getCaller());
-			if (count($forbids) > 0) 
-			{
-				foreach ($forbids as $forbid) 
-				{
-					if ($origination->isForbidden($forbid)) 
-					{
-//						echo "we found a fully forbidden call\r\n";
-						return (new Call())
-							->setRoute((new Route())
-								->setCustomer($origination->getCaller())
-								->setOriginator($origination->getIncomeDongle())
-								->setState(Route::STATE_FORBIDDEN)
-								->setExpiredAt(new \DateTime("now")))
-							->setDirection(Call::DIRECTION_MT);				
-					}
-				}		
-			}
-			if ($route !== null)
-			{
-//				echo "we found a route\r\n";
-				return (new Call())
-					->setRoute($route)
-					->setDirection($route->getDirection($origination));
-			}
-			$tasks = $em->getRepository("GateBundle:Task")->loadByOriginator($origination->getIncomeDongle());			
-			if (count($tasks) > 0)
-			{
-				foreach ($tasks as $task) 
-				{
-					if (!$task->isForbidden($forbids, $origination))
-					{
-//						echo "we found a task\r\n";
-						$task->setState(Task::STATE_DONE);// done for all of sid and master
-						$em->flush();
-						return (new Call())
-							->setRoute((new Route())
-								->setCustomer($origination->getCaller())
-								->setOriginator($origination->getIncomeDongle())
-								->setTerminator($agi->selectTerminator($task->getTerminators()))
-								->setMaster($task->getMaster())
-								->setTaskId($task->getSid())
-								->setState(Route::STATE_RG)
-								->setExpiredAt((new \DateTime("now"))->add(new \DateInterval($task->getActiveInterval()))))
-							->setDirection(Call::DIRECTION_RG);
-					}
-				}
-//				echo "all tasks are forbidden\r\n";
-				return (new Call())
-					->setRoute((new Route())
-						->setCustomer($origination->getCaller())
-						->setOriginator($origination->getIncomeDongle())
-						->setState(Route::STATE_FORBIDDEN_TASKS)
-						->setExpiredAt(new \DateTime("now")))
-					->setDirection(Call::DIRECTION_RG);
-			}
-//			echo "we found neither routes nor tasks\r\n";
-			return (new Call())
-				->setRoute((new Route())
-					->setCustomer($origination->getCaller())
-					->setOriginator($origination->getIncomeDongle())
-					->setState(Route::STATE_NO_WAY)
-					->setExpiredAt(new \DateTime("now")))
-				->setDirection(Call::DIRECTION_UNKNOWN);
-		}
-		else
-		{
-//			echo "we found a spammer\r\n";
-			return (new Call())
-				->setRoute((new Route())
-					->setCustomer($origination->getCaller())
-					->setOriginator($origination->getIncomeDongle())
-					->setState(Route::STATE_SPAM)
-					->setExpiredAt(new \DateTime("now")))
-				->setDirection(Call::DIRECTION_UNKNOWN);
-		}
-	}
+        if ($master !== null)
+        {
+            $route = $em->getRepository("GateBundle:Route")->loadByTermination($origination);
+            if ($route !== null)
+            {
+                return (new Call())
+                    ->setRoute($route)
+                    ->setDirection(Call::DIRECTION_MO);
+            }
+            else
+            {
+                return (new Call())
+                    ->setRoute((new Route())
+                        ->setMaster($origination->getCaller())
+                        ->setTerminator($origination->getIncomeDongle())
+                        ->setState(Route::STATE_INACTIVE))
+                    ->setDirection(Call::DIRECTION_MO);
+            }
+        }
+        else
+        {
+            $spammer = $em->getRepository("GateBundle:Spammer")->loadByNumber($origination->getCaller());
+            if ($spammer !== null)
+            {
+                return (new Call())
+                    ->setRoute((new Route())
+                        ->setCustomer($origination->getCaller())
+                        ->setOriginator($origination->getIncomeDongle())
+                        ->setState(Route::STATE_INACTIVE))
+                    ->setDirection(Call::DIRECTION_MT);
+            }
+            else
+            {
+                $route = $em->getRepository("GateBundle:Route")->loadByOrigination($origination);
+                if ($route !== null)
+                {
+                    return (new Call())
+                        ->setRoute($route
+                            ->setState(Route::STATE_ACTIVE))
+                        ->setDirection(Call::DIRECTION_MT);
+                }
+                else
+                {
+                    $task = $em->getRepository("GateBundle:Task")->loadByOrigination($origination);
+                    if ($task !== null)
+                    {
+                        $task->setState(Task::STATE_DONE);
+                        $em->flush();
+                        return (new Call())
+                            ->setRoute((new Route())
+                                ->setCustomer($origination->getCaller())
+                                ->setOriginator($origination->getIncomeDongle())
+                                ->setTerminator($agi->selectTerminator($task->getTerminators()))
+                                ->setMaster($task->getMaster())
+                                ->setTaskId($task->getSid())
+                                ->setState(Route::STATE_ACTIVE))
+                            ->setDirection(Call::DIRECTION_RG);
+                    }
+                    else
+                    {
+                        $route = $em->getRepository("GateBundle:Route")->loadByIncomeDongle($origination->getIncomeDongle());
+                        if ($route !== null)
+                        {
+                            return (new Call())
+                                ->setRoute((new Route())
+                                    ->setCustomer($origination->getCaller())
+                                    ->setOriginator($route->getOriginator())
+                                    ->setTerminator($route->getTerminator())
+                                    ->setMaster($route->getMaster())
+                                    ->setState(Route::STATE_INACTIVE))
+                                ->setDirection(Call::DIRECTION_DR);
+                        }
+                        else
+                        {
+                            return (new Call())
+                                ->setRoute((new Route())
+                                    ->setCustomer($origination->getCaller())
+                                    ->setOriginator($origination->getIncomeDongle())
+                                    ->setState(Route::STATE_INACTIVE))
+                                ->setDirection(Call::DIRECTION_MT);
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 }
