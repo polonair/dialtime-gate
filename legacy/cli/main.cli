@@ -1,0 +1,5 @@
+#!/usr/bin/env php
+<?php
+
+define("RUN_MODE", "CLI");
+require (__dir__ . "/../inc/starter.php");

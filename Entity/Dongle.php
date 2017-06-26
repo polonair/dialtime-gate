@@ -6,10 +6,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="Polonairs\Dialtime\GateBundle\Repository\DongleRepository")
- * @ORM\Table(name="dongles" indexes={
- *      @Index(name="state_idx", columns={"state"}),
- *      @Index(name="number_idx", columns={"number"}),
- *      @Index(name="created_at_idx", columns={"created_at"})
+ * @ORM\Table(name="dongles", indexes={
+ *      @ORM\Index(name="state_idx", columns={"state"}),
+ *      @ORM\Index(name="number_idx", columns={"number"}),
+ *      @ORM\Index(name="created_at_idx", columns={"created_at"})
  * })
  */
 class Dongle

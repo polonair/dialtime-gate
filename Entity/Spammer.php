@@ -6,8 +6,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="Polonairs\Dialtime\GateBundle\Repository\SpammerRepository")
- * @ORM\Table(name="spammers" indexes={
- *      @Index(name="number_idx", columns={"number"})
+ * @ORM\Table(name="spammers", indexes={
+ *      @ORM\Index(name="number_idx", columns={"number"})
  * })
  */
 class Spammer

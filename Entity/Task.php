@@ -7,11 +7,11 @@ use Polonairs\Dialtime\GateBundle\Agi\Origination;
 
 /**
  * @ORM\Entity(repositoryClass="Polonairs\Dialtime\GateBundle\Repository\TaskRepository")
- * @ORM\Table(name="tasks" indexes={
- *      @Index(name="sid_idx", columns={"sid"}),
- *      @Index(name="state_idx", columns={"state"}),
- *      @Index(name="originator_idx", columns={"originator"}),
- *      @Index(name="master_idx", columns={"master"})
+ * @ORM\Table(name="tasks", indexes={
+ *      @ORM\Index(name="sid_idx", columns={"sid"}),
+ *      @ORM\Index(name="state_idx", columns={"state"}),
+ *      @ORM\Index(name="originator_idx", columns={"originator"}),
+ *      @ORM\Index(name="master_idx", columns={"master"})
  * })
  */
 class Task
