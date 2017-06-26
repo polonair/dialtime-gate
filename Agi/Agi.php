@@ -213,10 +213,11 @@ class Agi
             $call->setResult($this->get_variable("DIALSTATUS", true));
             $call->setDialLength($this->get_variable("DIALEDTIME", true));
             $call->setAnswerLength($this->get_variable("ANSWEREDTIME", true));
-            // lame business here
-            $fstr = fopen($filename, 'rb');
+            $conv = new AudioConversion($filename);
+            $conv->execute();
+            $fstr = fopen($conv->getConverted(), 'rb');
             $call->setRecord(stream_get_contents($fstr));
-            // remove files
+            $conv->free();
             return;
         }
         elseif (($route->getState() === Route::STATE_ACTIVE) && ($call->getDirection() === Call::DIRECTION_MO))
@@ -227,10 +228,11 @@ class Agi
             $call->setResult($this->get_variable("DIALSTATUS", true));
             $call->setDialLength($this->get_variable("DIALEDTIME", true));
             $call->setAnswerLength($this->get_variable("ANSWEREDTIME", true));
-            // lame business here
-            $fstr = fopen($filename, 'rb');
+            $conv = new AudioConversion($filename);
+            $conv->execute();
+            $fstr = fopen($conv->getConverted(), 'rb');
             $call->setRecord(stream_get_contents($fstr));
-            // remove files
+            $conv->free();
             return;
         }
         $call->setResult(Call::RESULT_CANCEL);

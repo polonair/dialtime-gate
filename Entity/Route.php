@@ -7,14 +7,14 @@ use Polonairs\Dialtime\GateBundle\Agi\Origination;
 
 /**
  * @ORM\Entity(repositoryClass="Polonairs\Dialtime\GateBundle\Repository\RouteRepository")
- * @ORM\Table(name="routes" indexes={
- *      @Index(name="sid_idx", columns={"sid"}),
- *      @Index(name="task_id_idx", columns={"task_id"}),
- *      @Index(name="state_idx", columns={"state"}),
- *      @Index(name="customer_idx", columns={"customer"}),
- *      @Index(name="originator_idx", columns={"originator"}),
- *      @Index(name="master_idx", columns={"master"}),
- *      @Index(name="terminator_idx", columns={"terminator"})
+ * @ORM\Table(name="routes", indexes={
+ *      @ORM\Index(name="sid_idx", columns={"sid"}),
+ *      @ORM\Index(name="task_id_idx", columns={"task_id"}),
+ *      @ORM\Index(name="state_idx", columns={"state"}),
+ *      @ORM\Index(name="customer_idx", columns={"customer"}),
+ *      @ORM\Index(name="originator_idx", columns={"originator"}),
+ *      @ORM\Index(name="master_idx", columns={"master"}),
+ *      @ORM\Index(name="terminator_idx", columns={"terminator"})
  * })
  */
 class Route

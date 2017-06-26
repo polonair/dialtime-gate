@@ -6,9 +6,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity()
- * @ORM\Table(name="forbids" indexes={
- *      @Index(name="customer_idx", columns={"customer"}),
- *      @Index(name="master_idx", columns={"master"})
+ * @ORM\Table(name="forbids", indexes={
+ *      @ORM\Index(name="customer_idx", columns={"customer"}),
+ *      @ORM\Index(name="master_idx", columns={"master"})
  * })
  */
 class Forbid
