@@ -28,13 +28,13 @@ class Router
             $route = $em->getRepository("GateBundle:Route")->loadByTermination($origination);
             if ($route !== null)
             {
-                return (new Call())
+                return (new Call()) //1) regular MO
                     ->setRoute($route)
                     ->setDirection(Call::DIRECTION_MO);
             }
             else
             {
-                return (new Call())
+                return (new Call()) //2) no route MO
                     ->setRoute((new Route())
                         ->setMaster($origination->getCaller())
                         ->setTerminator($origination->getIncomeDongle())
@@ -47,7 +47,7 @@ class Router
             $spammer = $em->getRepository("GateBundle:Spammer")->loadByNumber($origination->getCaller());
             if ($spammer !== null)
             {
-                return (new Call())
+                return (new Call()) //3) spam
                     ->setRoute((new Route())
                         ->setCustomer($origination->getCaller())
                         ->setOriginator($origination->getIncomeDongle())
@@ -59,10 +59,19 @@ class Router
                 $route = $em->getRepository("GateBundle:Route")->loadByOrigination($origination);
                 if ($route !== null)
                 {
-                    return (new Call())
-                        ->setRoute($route
-                            ->setState(Route::STATE_ACTIVE))
-                        ->setDirection(Call::DIRECTION_MT);
+                    if ($route->getState() === Route::STATE_ACTIVE)
+                    {
+                        return (new Call()) //4.1) regular MT
+                            ->setRoute($route)
+                            ->setDirection(Call::DIRECTION_MT);
+                    }
+                    else
+                    {
+                        return (new Call()) //4.2) regeneration
+                            ->setRoute($route
+                                ->setState(Route::STATE_ACTIVE))
+                            ->setDirection(Call::DIRECTION_RRG);
+                    }
                 }
                 else
                 {
@@ -71,14 +80,14 @@ class Router
                     {
                         $task->setState(Task::STATE_DONE);
                         $em->flush();
-                        return (new Call())
+                        return (new Call()) //5) route generation
                             ->setRoute((new Route())
                                 ->setCustomer($origination->getCaller())
                                 ->setOriginator($origination->getIncomeDongle())
                                 ->setTerminator($agi->selectTerminator($task->getTerminators()))
                                 ->setMaster($task->getMaster())
                                 ->setTaskId($task->getSid())
-                                ->setState(Route::STATE_ACTIVE))
+                                ->setState(Route::STATE_INACTIVE))
                             ->setDirection(Call::DIRECTION_RG);
                     }
                     else
@@ -86,7 +95,7 @@ class Router
                         $route = $em->getRepository("GateBundle:Route")->loadByIncomeDongle($origination->getIncomeDongle());
                         if ($route !== null)
                         {
-                            return (new Call())
+                            return (new Call()) //6) direct call
                                 ->setRoute((new Route())
                                     ->setCustomer($origination->getCaller())
                                     ->setOriginator($route->getOriginator())
@@ -97,7 +106,7 @@ class Router
                         }
                         else
                         {
-                            return (new Call())
+                            return (new Call()) //7) forbidden / no route MT / other
                                 ->setRoute((new Route())
                                     ->setCustomer($origination->getCaller())
                                     ->setOriginator($origination->getIncomeDongle())
