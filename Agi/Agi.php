@@ -205,7 +205,8 @@ class Agi
         $route = $call->getRoute();
         if ((($route->getState() === Route::STATE_INACTIVE) && ($call->getDirection() === Call::DIRECTION_DR)) ||
             (($route->getState() === Route::STATE_ACTIVE) && ($call->getDirection() === Call::DIRECTION_MT)) ||
-            (($route->getState() === Route::STATE_ACTIVE) && ($call->getDirection() === Call::DIRECTION_RG)))
+            (($route->getState() === Route::STATE_INACTIVE) && ($call->getDirection() === Call::DIRECTION_RG)) ||
+            (($route->getState() === Route::STATE_ACTIVE) && ($call->getDirection() === Call::DIRECTION_RRG)))
         {
             $this->exec('MixMonitor', $filename, "b");
             $this->exec_dial("SIP/" . $call->getRoute()->getTerminator(), $call->getRoute()->getMaster());
@@ -217,6 +218,9 @@ class Agi
             $conv->execute();
             $fstr = fopen($conv->getConverted(), 'rb');
             $call->setRecord(stream_get_contents($fstr));
+            if ($call->getDirection() === Call::DIRECTION_RG && 
+                $call->getResult() === Call::RESULT_ANSWER)
+                $call->getRoute()->setState(Route::STATE_ACTIVE);
             $conv->free();
             return;
         }
